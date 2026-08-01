@@ -80,7 +80,7 @@
       "rom": {
         "name": "crDroid",
         "tagline": "Custom Android firmware built for speed, privacy and a clean, distraction-free experience.",
-        "logoImage": "assets/img/logo.svg",
+        "logoImage": "assets/img/Crdroid logo.svg",
         "author": { "name": "SkyX-Arch", "url": "https://github.com/SkyX-Arch" }
       },
 
