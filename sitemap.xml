@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://skyx-arch.github.io/romsite/</loc>
+    <lastmod>2026-07-24</lastmod>
+  </url>
+  <url>
+    <loc>https://skyx-arch.github.io/romsite/?rom=crdroid-plato</loc>
+    <lastmod>2026-07-24</lastmod>
+  </url>
+  <url>
+    <loc>https://skyx-arch.github.io/romsite/?rom=axionos-example</loc>
+    <lastmod>2026-07-24</lastmod>
+  </url>
+  <url>
+    <loc>https://skyx-arch.github.io/romsite/?faq=getting-started</loc>
+    <lastmod>2026-07-24</lastmod>
+  </url>
+  <url>
+    <loc>https://skyx-arch.github.io/romsite/?faq=installation-faq</loc>
+    <lastmod>2026-07-24</lastmod>
+  </url>
+  <url>
+    <loc>https://skyx-arch.github.io/romsite/?faq=troubleshooting</loc>
+    <lastmod>2026-07-24</lastmod>
+  </url>
+</urlset>

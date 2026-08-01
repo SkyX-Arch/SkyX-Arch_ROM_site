@@ -7,10 +7,14 @@
     "_comment": "Identity for the whole collection/maintainer — shown in the nav brand (all views) and on the all-builds grid (only relevant when there's more than one profile below).",
     "title": "SkyX-Arch Builds",
     "subtitle": "All custom ROM builds maintained by SkyX-Arch — pick a device below.",
-    "logoImage": "assets/img/logo main.svg",
+    "logoImage": "assets/img/logo.svg",
     "assetVersion": "1",
-	"githubUrl": "https://github.com/SkyX-Arch",
+    "githubUrl": "https://github.com/SkyX-Arch",
     "telegramUrl": "https://t.me/SkyXArch",
+    "siteUrlComment": "Full deployed URL of this site (your GitHub Pages URL, or custom domain), no trailing slash. Used to generate sitemap.xml and as the canonical/Open-Graph URL for link previews.",
+    "siteUrl": "https://skyx-arch.github.io/romsite",
+    "socialImageComment": "Image shown in link previews (Telegram/Discord/Twitter/etc) when the homepage is shared. A dedicated ~1200x630 PNG/JPG works more reliably across platforms than an SVG logo, but the logo is used as a fallback if you don't have one yet.",
+    "socialImage": "assets/img/social-banner.jpg",
     "donate": {
       "_comment": "Optional. Shown as a small, easy-to-miss-on-purpose 'Support this project' link in the footer — omit a currency to hide it, or omit 'donate' entirely to hide the link altogether. Acts as the site-wide default; a profile can set its own 'donate' block to override this for just that ROM.",
       "bitcoin": "bc1pngx5j2sf6mhkpl8579jc5t6zn80rstrvkygu5ljclfg3jntlpkes08jqms",
@@ -23,8 +27,10 @@
       "id": "crdroid-plato",
       "label": "crDroid — Xiaomi 12T",
       "assetVersion": "1",
-	  "featuredComment": "Optional. Set to true on whichever profile is the primary/flagship project — shows a 'Featured' badge and a slightly larger, first-position card on the hub grid.",
+      "featuredComment": "Optional. Set to true on whichever profile is the primary/flagship project — shows a 'Featured' badge and a slightly larger, first-position card on the hub grid.",
       "featured": true,
+      "tagsComment": "Optional. Fully manual badges on this profile's hub-grid tile — any short labels you want (OTA, GApps Included, A/B Only, Recommended, whatever). If set, this list is used exactly as-is, INCLUDING deciding whether an 'OTA' badge shows — the automatic OTA-detection (from remote.releaseJsonUrl) only kicks in as a fallback when 'tags' isn't set at all. Set to an empty array to intentionally show no tags.",
+      "tags": ["OTA", "Vanilla"],
 
       "remote": {
         "_comment": "Live data sources for this device. Point releaseJsonUrl/changelogUrl at your own ROM's feed to switch devices.",
@@ -44,6 +50,8 @@
             "buildType": "buildtype",
             "maintainer": "maintainer",
             "size": "size",
+            "sha256": "sha256",
+            "md5": "md5",
             "telegram": "telegram",
             "gapps": "gapps",
             "firmware": "firmware"
@@ -62,9 +70,9 @@
 
       "theme": {
         "_comment": "Optional. Override the site's Material You accent colors to match this ROM's branding — everything else (gradients, badges, hover states, button backgrounds) derives from these automatically. Leave a value out to keep the default. onPrimary (filled-button text color) is auto-computed for contrast if omitted.",
-        "primary": "#D0BCFF",
-        "secondary": "#CCC2DC",
-        "tertiary": "#EFB8C8",
+        "primary": "#4DA6FF",
+        "secondary": "#88EBFF",
+        "tertiary": "#FFC868",
         "onPrimary": null,
         "primaryContainer": null
       },
@@ -72,7 +80,7 @@
       "rom": {
         "name": "crDroid",
         "tagline": "Custom Android firmware built for speed, privacy and a clean, distraction-free experience.",
-        "logoImage": "assets/img/Crdroid logo.svg",
+        "logoImage": "assets/img/logo.svg",
         "author": { "name": "SkyX-Arch", "url": "https://github.com/SkyX-Arch" }
       },
 
@@ -99,7 +107,7 @@
       "latestRelease": {
         "version": "12.11",
         "codename": "Unofficial",
-        "date": "2026-07-12",
+        "date": "2026-07-05",
         "androidBase": "Android 16",
         "summary": "The newest crDroid build for plato. See the full changelog below for everything that changed."
       },
@@ -188,17 +196,17 @@
       }
     },
 
-    {
+       {
       "_comment": "AxionOS-plato ROM",
       "id": "axionos-plato",
       "label": "AxionOS — Xiaomi 12T",
       "assetVersion": "1",
-	  "status": "frozen",
-      
+	  "status": "discontinued",
+
       "remote": {
         "releaseJsonUrl": "https://skyx-arch.github.io/axionos-ota/plato.json",
         "changelogUrl": "https://skyx-arch.github.io/axionos-ota/plato_changelog.txt",
-        
+
         "releaseJsonMap": {
           "_comment": "Every ROM's OTA JSON names its fields a little differently — this maps THIS ROM's field names onto the page's internal fields, so a different ROM can be supported by editing this block instead of assets/js/main.js.",
           "listPath": "response",
@@ -264,7 +272,7 @@
       "latestRelease": {
         "version": "2.7",
         "codename": "Unofficial",
-        "date": "2026-07-12",
+        "date": "2026-01-01",
         "androidBase": "Android 16",
         "summary": "The newest AxionOS build for plato. See the full changelog below for everything that changed."
       },

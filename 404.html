@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page not found</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/png" href="assets/img/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <style>
+    /* Small, page-specific styles — this is a standalone static page (not
+       driven by main.js/data.json), so it doesn't pull in the full app shell. */
+    .not-found {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+    }
+
+    .not-found-code {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(64px, 14vw, 120px);
+      line-height: 1;
+      background: var(--gradient-accent);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 16px;
+    }
+
+    .not-found-title {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 22px;
+      margin-bottom: 12px;
+    }
+
+    .not-found-text {
+      color: var(--color-on-surface-variant);
+      max-width: 420px;
+      margin-bottom: 32px;
+    }
+  </style>
+</head>
+<body>
+  <div class="not-found">
+    <div class="not-found-code">404</div>
+    <h1 class="not-found-title">This page doesn't exist</h1>
+    <p class="not-found-text">
+      The link might be old, mistyped, or the page may have moved.
+      Head back to the homepage to find what you're looking for.
+    </p>
+    <a href="/" class="btn btn-filled">Back to homepage</a>
+  </div>
+</body>
+</html>

@@ -31,7 +31,8 @@ const ICONS = {
   ethereum: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v7.5L18 14 12 3z"/><path d="M12 3 6 14l6-3.5z"/><path d="M12 15.5 6 14l6 6.5 6-6.5z"/></svg>',
   heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-7-4.35-9.5-8.5C.8 8 2 4.5 5.5 4c2-.3 3.7.8 4.5 2.3C10.8 4.8 12.5 3.7 14.5 4 18 4.5 19.2 8 17.5 11.5 15 15.65 12 20 12 20z"/></svg>',
   pause: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>',
-  archive: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9"/><path d="M10 13h4"/></svg>'
+  archive: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9"/><path d="M10 13h4"/></svg>',
+  shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>'
 };
 
 // Escapes text before it goes inside a code block — shell commands often
@@ -246,6 +247,8 @@ function applyRemoteRelease(pageData, release, map) {
   const buildType = getMappedField(release, map, 'buildType');
   const maintainer = getMappedField(release, map, 'maintainer');
   const size = getMappedField(release, map, 'size');
+  const sha256 = getMappedField(release, map, 'sha256');
+  const md5 = getMappedField(release, map, 'md5');
   const telegram = getMappedField(release, map, 'telegram');
   const gapps = getMappedField(release, map, 'gapps');
   const firmware = getMappedField(release, map, 'firmware');
@@ -265,6 +268,8 @@ function applyRemoteRelease(pageData, release, map) {
   pageData.latestRelease.date = dateIso;
   pageData.latestRelease.maintainer = maintainer;
   pageData.latestRelease.size = formatSize(size);
+  pageData.latestRelease.sha256 = sha256 || null;
+  pageData.latestRelease.md5 = md5 || null;
 
   // NOTE: links.downloads is intentionally NOT overwritten here — it stays
   // fully controlled by data.json (e.g. a stable ".../releases/latest" page)
@@ -444,6 +449,201 @@ function initDonateModal() {
   });
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && modal.classList.contains('open')) closeDonateModal();
+  });
+}
+
+// -----------------------------------------------------------------------
+// Fox Run — a small hidden easter egg (classic Snake, fox-skinned). Type
+// "fox" anywhere on the page (not while typing in a field) to open it.
+// Purely a fun bonus; it doesn't touch or depend on anything else on the site.
+// -----------------------------------------------------------------------
+const FOX_GAME_GRID_SIZE = 20;
+const FOX_GAME_CELL_SIZE = 20; // canvas is 400x400 -> 20x20 grid
+const FOX_GAME_TICK_MS = 130;
+
+let foxGameState = null; // holds the current game's mutable state while the modal is open
+
+function placeFoxGameFood(snake) {
+  let cell;
+  do {
+    cell = { x: Math.floor(Math.random() * FOX_GAME_GRID_SIZE), y: Math.floor(Math.random() * FOX_GAME_GRID_SIZE) };
+  } while (snake.some(seg => seg.x === cell.x && seg.y === cell.y));
+  return cell;
+}
+
+function resetFoxGameState() {
+  const start = { x: 10, y: 10 };
+  const snake = [start, { x: 9, y: 10 }, { x: 8, y: 10 }];
+  const rootStyle = getComputedStyle(document.documentElement);
+
+  foxGameState = {
+    snake,
+    direction: { x: 1, y: 0 },
+    nextDirection: { x: 1, y: 0 },
+    food: placeFoxGameFood(snake),
+    score: 0,
+    over: false,
+    timerId: null,
+    // Read the theme colors once per game rather than every frame.
+    colors: {
+      background: rootStyle.getPropertyValue('--color-background').trim() || '#05070D',
+      primary: rootStyle.getPropertyValue('--color-primary').trim() || '#4DA6FF',
+      secondary: rootStyle.getPropertyValue('--color-secondary').trim() || '#88EBFF',
+      tertiary: rootStyle.getPropertyValue('--color-tertiary').trim() || '#FFC868',
+      onSurface: rootStyle.getPropertyValue('--color-on-surface').trim() || '#E8F0FF'
+    }
+  };
+}
+
+function drawFoxGame() {
+  const canvas = document.getElementById('fox-game-canvas');
+  const ctx = canvas.getContext('2d');
+  const size = FOX_GAME_CELL_SIZE;
+  const { colors } = foxGameState;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Food
+  ctx.fillStyle = colors.tertiary;
+  const food = foxGameState.food;
+  ctx.beginPath();
+  ctx.arc(food.x * size + size / 2, food.y * size + size / 2, size * 0.3, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Body (head brighter/secondary-colored, rest primary)
+  foxGameState.snake.forEach((segment, index) => {
+    ctx.fillStyle = index === 0 ? colors.secondary : colors.primary;
+    const pad = index === 0 ? 1 : 2;
+    ctx.fillRect(segment.x * size + pad, segment.y * size + pad, size - pad * 2, size - pad * 2);
+  });
+
+  // A couple of triangle "ears" and dot eyes on the head segment, just
+  // enough to read as a fox rather than a plain square.
+  const head = foxGameState.snake[0];
+  const hx = head.x * size + size / 2;
+  const hy = head.y * size + size / 2;
+  ctx.fillStyle = colors.background;
+  ctx.beginPath();
+  ctx.moveTo(hx - 6, hy - 4);
+  ctx.lineTo(hx - 3, hy - 9);
+  ctx.lineTo(hx, hy - 4);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(hx, hy - 4);
+  ctx.lineTo(hx + 3, hy - 9);
+  ctx.lineTo(hx + 6, hy - 4);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(hx - 3, hy, 1.2, 0, Math.PI * 2);
+  ctx.arc(hx + 3, hy, 1.2, 0, Math.PI * 2);
+  ctx.fill();
+
+  if (foxGameState.over) {
+    ctx.fillStyle = 'rgba(5, 7, 13, 0.75)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = colors.onSurface;
+    ctx.textAlign = 'center';
+    ctx.font = '600 20px Inter, sans-serif';
+    ctx.fillText('Game over', canvas.width / 2, canvas.height / 2 - 10);
+    ctx.font = '14px Inter, sans-serif';
+    ctx.fillText('Press Enter to try again', canvas.width / 2, canvas.height / 2 + 16);
+  }
+}
+
+function tickFoxGame() {
+  if (!foxGameState || foxGameState.over) return;
+
+  foxGameState.direction = foxGameState.nextDirection;
+  const head = foxGameState.snake[0];
+  const newHead = { x: head.x + foxGameState.direction.x, y: head.y + foxGameState.direction.y };
+
+  const hitWall = newHead.x < 0 || newHead.x >= FOX_GAME_GRID_SIZE || newHead.y < 0 || newHead.y >= FOX_GAME_GRID_SIZE;
+  const hitSelf = foxGameState.snake.some(segment => segment.x === newHead.x && segment.y === newHead.y);
+
+  if (hitWall || hitSelf) {
+    foxGameState.over = true;
+    clearInterval(foxGameState.timerId);
+    drawFoxGame();
+    return;
+  }
+
+  foxGameState.snake.unshift(newHead);
+
+  if (newHead.x === foxGameState.food.x && newHead.y === foxGameState.food.y) {
+    foxGameState.score += 1;
+    document.getElementById('fox-game-score').textContent = String(foxGameState.score);
+    foxGameState.food = placeFoxGameFood(foxGameState.snake);
+  } else {
+    foxGameState.snake.pop();
+  }
+
+  drawFoxGame();
+}
+
+function openFoxGame() {
+  resetFoxGameState();
+  document.getElementById('fox-game-score').textContent = '0';
+  document.getElementById('fox-game-modal').classList.add('open');
+  drawFoxGame();
+  foxGameState.timerId = setInterval(tickFoxGame, FOX_GAME_TICK_MS);
+}
+
+function closeFoxGame() {
+  document.getElementById('fox-game-modal').classList.remove('open');
+  if (foxGameState && foxGameState.timerId) clearInterval(foxGameState.timerId);
+  foxGameState = null;
+}
+
+const FOX_GAME_DIRECTIONS = {
+  ArrowUp: { x: 0, y: -1 }, w: { x: 0, y: -1 }, W: { x: 0, y: -1 },
+  ArrowDown: { x: 0, y: 1 }, s: { x: 0, y: 1 }, S: { x: 0, y: 1 },
+  ArrowLeft: { x: -1, y: 0 }, a: { x: -1, y: 0 }, A: { x: -1, y: 0 },
+  ArrowRight: { x: 1, y: 0 }, d: { x: 1, y: 0 }, D: { x: 1, y: 0 }
+};
+
+function initFoxGame() {
+  document.getElementById('fox-game-close').addEventListener('click', closeFoxGame);
+  document.getElementById('fox-game-modal').addEventListener('click', (event) => {
+    if (event.target.id === 'fox-game-modal') closeFoxGame();
+  });
+
+  document.addEventListener('keydown', (event) => {
+    const modal = document.getElementById('fox-game-modal');
+    if (!modal.classList.contains('open')) return;
+
+    if (event.key === 'Escape') {
+      closeFoxGame();
+      return;
+    }
+
+    if (event.key === 'Enter' && foxGameState && foxGameState.over) {
+      openFoxGame(); // restart
+      return;
+    }
+
+    const direction = FOX_GAME_DIRECTIONS[event.key];
+    if (!direction || !foxGameState) return;
+    event.preventDefault(); // stop arrow keys/space from scrolling the page behind the modal
+
+    // Ignore a direct U-turn into the snake's own neck.
+    const current = foxGameState.direction;
+    if (direction.x === -current.x && direction.y === -current.y) return;
+    foxGameState.nextDirection = direction;
+  });
+
+  // Secret trigger: typing "fox" anywhere (not while focused in a text field) opens the game.
+  let typedBuffer = '';
+  document.addEventListener('keydown', (event) => {
+    const active = document.activeElement;
+    const tag = active && active.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || (active && active.isContentEditable)) return;
+    if (event.key.length !== 1) return; // ignore Shift/Arrow/etc — only single printable characters count
+
+    typedBuffer = (typedBuffer + event.key).slice(-3).toLowerCase();
+    if (typedBuffer === 'fox') {
+      typedBuffer = '';
+      openFoxGame();
+    }
   });
 }
 
@@ -630,6 +830,21 @@ function renderRelease(data) {
   if (latestRelease.maintainer) metaParts.push(`Maintainer: ${latestRelease.maintainer}`);
   if (latestRelease.size) metaParts.push(`Size: ${latestRelease.size}`);
   document.getElementById('release-meta').textContent = metaParts.join(' · ');
+
+  const checksums = [
+    latestRelease.sha256 ? { label: 'SHA256', value: latestRelease.sha256 } : null,
+    latestRelease.md5 ? { label: 'MD5', value: latestRelease.md5 } : null
+  ].filter(Boolean);
+
+  document.getElementById('release-checksums').innerHTML = checksums.map(checksum => `
+    <div class="checksum-row">
+      <span class="checksum-label">${checksum.label}</span>
+      <span class="checksum-value" title="${checksum.value}">${checksum.value}</span>
+      <button type="button" class="checksum-copy-btn" data-copy-text="${encodeURIComponent(checksum.value)}" aria-label="Copy ${checksum.label} checksum">
+        ${iconMarkup('copy')}
+      </button>
+    </div>
+  `).join('');
 }
 
 function renderChangelog(data) {
@@ -755,10 +970,13 @@ function renderInstallSteps(data) {
 // working after install-intro/install-steps are re-rendered with live data.
 function initCodeCopyButtons() {
   document.addEventListener('click', (event) => {
-    const button = event.target.closest('.code-copy-btn');
+    const button = event.target.closest('.code-copy-btn, .checksum-copy-btn, .copy-link-btn');
     if (!button) return;
 
-    const text = decodeURIComponent(button.dataset.copyText || '');
+    const text = button.dataset.copyText
+      ? decodeURIComponent(button.dataset.copyText)
+      : window.location.href; // copy-link buttons with no explicit data-copy-text just copy the current URL
+
     navigator.clipboard.writeText(text).then(() => {
       const original = button.innerHTML;
       button.innerHTML = iconMarkup('check');
@@ -1010,8 +1228,37 @@ async function loadFaqManifest() {
     const manifest = await loadJson('faq/manifest.json', 'default');
     return Array.isArray(manifest.articles) ? manifest.articles : [];
   } catch (err) {
+    console.warn('FAQ manifest not loaded (expected if faq/manifest.json is not set up yet) —', err.message);
     return [];
   }
+}
+
+// Injects FAQPage structured data (schema.org) once the manifest is loaded,
+// so search engines can potentially show these Q&As directly in results.
+// Uses each article's excerpt as the "answer" — keep excerpts genuinely
+// answer-shaped (a sentence or two that actually addresses the title) rather
+// than a generic teaser, or this won't qualify for rich results anyway.
+function injectFaqStructuredData(faqArticles) {
+  if (faqArticles.length === 0) return;
+
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqArticles.map(article => ({
+      '@type': 'Question',
+      name: article.title,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: article.excerpt || article.title
+      }
+    }))
+  };
+
+  const script = document.createElement('script');
+  script.type = 'application/ld+json';
+  script.id = 'faq-structured-data';
+  script.textContent = JSON.stringify(schema);
+  document.head.appendChild(script);
 }
 
 function renderFaqList(articles) {
@@ -1168,21 +1415,54 @@ function computeHubStats(profiles) {
   const otaSupported = profiles.some(p => p.remote && p.remote.releaseJsonUrl);
 
   return [
-    { value: String(romCount), label: romCount === 1 ? 'Supported ROM' : 'Supported ROMs' },
-    { value: String(deviceNames.size), label: deviceNames.size === 1 ? 'Supported Device' : 'Supported Devices' },
-    { value: latestAndroid ? `Android ${latestAndroid}` : '—', label: 'Latest Base' },
-    { value: otaSupported ? 'Supported' : 'Manual', label: 'OTA Updates' }
+    { value: String(romCount), label: romCount === 1 ? 'Supported ROM' : 'Supported ROMs', icon: 'download' },
+    { value: String(deviceNames.size), label: deviceNames.size === 1 ? 'Supported Device' : 'Supported Devices', icon: 'shield' },
+    { value: latestAndroid ? `Android ${latestAndroid}` : '—', label: 'Latest Base', icon: 'android' },
+    { value: otaSupported ? 'Supported' : 'Manual', label: 'OTA Updates', icon: 'tip' }
   ];
+}
+
+// Eases a stat number up from 0 to its target value. Purely cosmetic, so it
+// respects prefers-reduced-motion (jumps straight to the final value there).
+function animateCountUp(el, target, duration = 900) {
+  const prefersReducedMotion = typeof window.matchMedia === 'function'
+    && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (prefersReducedMotion) {
+    el.textContent = String(target);
+    return;
+  }
+
+  const start = performance.now();
+  function tick(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic — quick start, gentle settle
+    el.textContent = String(Math.round(eased * target));
+    if (progress < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
 }
 
 function renderHubStats(profiles) {
   const container = document.getElementById('hub-stats');
-  container.innerHTML = computeHubStats(profiles).map(stat => `
+  const stats = computeHubStats(profiles);
+
+  container.innerHTML = stats.map(stat => `
     <div class="hub-stat-card reveal">
+      <div class="hub-stat-icon">${iconMarkup(stat.icon)}</div>
       <div class="hub-stat-value">${stat.value}</div>
       <div class="hub-stat-label">${stat.label}</div>
     </div>
   `).join('');
+
+  // Count up only the purely-numeric stats (ROMs/Devices) — text values like
+  // "Android 16" or "Supported" just render as-is, counting up wouldn't make sense.
+  container.querySelectorAll('.hub-stat-value').forEach((el, i) => {
+    const target = Number(stats[i].value);
+    if (Number.isFinite(target) && String(stats[i].value).trim() !== '') {
+      animateCountUp(el, target);
+    }
+  });
 }
 
 // Sets an external link's href and hides it if the URL isn't configured —
@@ -1209,11 +1489,17 @@ function renderHubCardBody(profile) {
     ? `<span class="hub-card-status hub-card-status-${profile.status}">${statusConfig.badgeLabel}</span>`
     : '';
 
-  const otaSupported = Boolean(profile.remote && profile.remote.releaseJsonUrl);
+  const cardTags = Array.isArray(profile.tags)
+    ? profile.tags
+    : (profile.remote && profile.remote.releaseJsonUrl ? ['OTA'] : []); // fallback when 'tags' isn't set at all
+
   const badges = [
     profile.featured ? '<span class="hub-card-badge hub-card-badge-featured">Featured</span>' : '',
     release.codename ? `<span class="hub-card-badge hub-card-badge-build">${release.codename}</span>` : '',
-    otaSupported ? '<span class="hub-card-badge hub-card-badge-ota">OTA</span>' : ''
+    ...cardTags.map(tag => {
+      const modifier = tag.trim().toUpperCase() === 'OTA' ? 'hub-card-badge-ota' : 'hub-card-badge-tag';
+      return `<span class="hub-card-badge ${modifier}">${tag}</span>`;
+    })
   ].filter(Boolean).join('');
 
   const updatedLabel = release.date ? `Updated ${formatRelativeDate(release.date)}` : '';
@@ -1596,6 +1882,31 @@ function initNavDrawer(profiles, faqArticles) {
 
 // Material-style ripple feedback on any .btn click, delegated so it works
 // for buttons injected later (e.g. per-profile download/release buttons).
+// Scatters a handful of small twinkling "star" dots into a scene background.
+// Purely decorative — count stays modest and animation is opacity/scale only
+// (GPU-cheap), and respects prefers-reduced-motion via the CSS rule already
+// disabling .scene-star's animation there.
+function initStarfield(containerId, count = 45) {
+  const container = document.getElementById(containerId);
+  if (!container || container.dataset.starsRendered) return; // static scene, only needs building once
+  container.dataset.starsRendered = 'true';
+
+  const stars = [];
+  for (let i = 0; i < count; i++) {
+    const size = 1 + Math.random() * 2; // 1-3px
+    const style = [
+      `left: ${(Math.random() * 100).toFixed(2)}%`,
+      `top: ${(Math.random() * 100).toFixed(2)}%`,
+      `width: ${size.toFixed(1)}px`,
+      `height: ${size.toFixed(1)}px`,
+      `animation-duration: ${(3 + Math.random() * 4).toFixed(1)}s`,
+      `animation-delay: -${(Math.random() * 4).toFixed(1)}s` // negative delay staggers them so they don't all pulse in sync
+    ].join('; ');
+    stars.push(`<span class="scene-star" style="${style}"></span>`);
+  }
+  container.innerHTML = stars.join('');
+}
+
 function initButtonRipple() {
   document.addEventListener('click', (event) => {
     const btn = event.target.closest('.btn');
@@ -1654,6 +1965,7 @@ async function init() {
   // Never throws — resolves to [] if there's no faq/ folder or manifest,
   // in which case every FAQ nav entry just stays hidden below.
   const faqArticles = await loadFaqManifest();
+  injectFaqStructuredData(faqArticles);
 
   try {
     const { profiles: rawProfiles, defaultProfileId, hub } = normalizeProfiles(rawData);
@@ -1683,10 +1995,13 @@ async function init() {
     initNavDrawer(profiles, faqArticles);
     initFaqNavigation(profiles, faqArticles);
     initButtonRipple();
+    initStarfield('hub-hero-stars');
+    initStarfield('hero-stars');
     initHeaderScrollState();
     initCodeCopyButtons();
     initLightbox();
     initDonateModal();
+    initFoxGame();
 
     const params = new URLSearchParams(window.location.search);
     const romIdFromUrl = params.get('rom');

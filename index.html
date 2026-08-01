@@ -8,7 +8,24 @@
   <meta name="description" content="A custom Android firmware landing page." id="meta-description">
   <!-- sizes="any" tells the browser this SVG can be scaled to whatever pixel
        size the tab/bookmark needs, instead of assuming a fixed intrinsic size -->
-  <link rel="icon" type="image/svg+xml" sizes="any" href="assets/img/logo main.svg">
+  <link rel="icon" type="image/png" href="assets/img/favicon.png">
+
+  <!-- EDIT: keep these roughly matching data.json's "hub" block (title/subtitle/logoImage).
+       Link-preview bots (Telegram, Discord, Twitter, etc) generally don't run
+       JavaScript, so they only ever see this static version — not whatever
+       ?rom=/?faq= page was actually shared. That's a real limitation of a
+       client-rendered single page without a build step; every shared link
+       gets the same generic site-wide preview card. -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="SkyX-Arch Builds">
+  <meta property="og:title" content="SkyX-Arch Builds — Custom Android Firmware">
+  <meta property="og:description" content="All custom ROM builds maintained by SkyX-Arch — pick a device and get the latest release.">
+  <meta property="og:image" content="https://skyx-arch.github.io/romsite/assets/img/social-banner.jpg">
+  <meta property="og:url" content="https://skyx-arch.github.io/romsite">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="SkyX-Arch Builds — Custom Android Firmware">
+  <meta name="twitter:description" content="All custom ROM builds maintained by SkyX-Arch — pick a device and get the latest release.">
+  <meta name="twitter:image" content="https://skyx-arch.github.io/romsite/assets/img/social-banner.jpg">
 
   <!-- Kick off the two most critical fetches immediately, in parallel with
        everything else, instead of waiting for main.js to load+run first.
@@ -87,8 +104,25 @@
     <!-- Shown when there's more than one profile in data.json and none is selected via ?rom=<id>. -->
     <section id="hub-view" hidden>
       <div class="hub-hero">
-        <div class="hub-hero-blob" aria-hidden="true"></div>
-        <div class="hub-hero-blob hub-hero-blob-secondary" aria-hidden="true"></div>
+        <div class="scene-bg" aria-hidden="true">
+          <div class="scene-stars" id="hub-hero-stars"></div>
+          <svg class="scene-ribbon" viewBox="0 0 1200 400" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id="hubRibbonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" class="ribbon-stop-start"/>
+                <stop offset="100%" class="ribbon-stop-end"/>
+              </linearGradient>
+            </defs>
+            <path d="M-50,300 C150,200 300,380 500,280 C700,180 850,320 1050,220 C1150,170 1200,190 1250,180" stroke="url(#hubRibbonGrad)" stroke-width="90" fill="none" stroke-linecap="round" opacity="0.14"/>
+          </svg>
+          <svg class="scene-fox" viewBox="0 0 200 150">
+            <path class="scene-fox-path" d="M20,110 L50,20 L65,60 L85,35 Q120,25 150,45 L180,60 L155,75 Q130,80 110,90 L90,120 Q60,130 20,110 Z"/>
+          </svg>
+          <svg class="scene-mountains" viewBox="0 0 1200 200" preserveAspectRatio="none">
+            <path class="scene-mountain-back" d="M0,200 L0,120 L150,60 L300,110 L450,40 L600,90 L750,30 L900,100 L1050,50 L1200,90 L1200,200 Z"/>
+            <path class="scene-mountain-front" d="M0,200 L0,150 L100,90 L250,140 L400,70 L550,130 L700,60 L850,120 L1000,80 L1150,130 L1200,110 L1200,200 Z"/>
+          </svg>
+        </div>
         <div class="container hub-hero-content">
           <img src="assets/img/logo.svg" alt="Logo" class="hub-hero-logo" id="hub-hero-logo" decoding="async">
           <span class="eyebrow reveal">All builds</span>
@@ -140,7 +174,12 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
             Back to FAQ
           </a>
-          <h1 class="faq-article-title" id="faq-article-title"></h1>
+          <div class="faq-article-title-row">
+            <h1 class="faq-article-title" id="faq-article-title"></h1>
+            <button type="button" class="btn-icon copy-link-btn" id="faq-copy-link-btn" aria-label="Copy link to this article">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></svg>
+            </button>
+          </div>
           <div class="faq-article markdown-body" id="faq-article-content">
             <!-- Rendered markdown is injected here by main.js -->
           </div>
@@ -151,7 +190,25 @@
     <!-- ===================== DETAIL VIEW (one ROM/device) ===================== -->
     <div id="detail-view" hidden>
     <section class="hero">
-      <div class="hero-blob" aria-hidden="true"></div>
+      <div class="scene-bg" aria-hidden="true">
+        <div class="scene-stars" id="hero-stars"></div>
+        <svg class="scene-ribbon" viewBox="0 0 1200 400" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <linearGradient id="heroRibbonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" class="ribbon-stop-start"/>
+              <stop offset="100%" class="ribbon-stop-end"/>
+            </linearGradient>
+          </defs>
+          <path d="M-50,300 C150,200 300,380 500,280 C700,180 850,320 1050,220 C1150,170 1200,190 1250,180" stroke="url(#heroRibbonGrad)" stroke-width="90" fill="none" stroke-linecap="round" opacity="0.14"/>
+        </svg>
+        <svg class="scene-fox" viewBox="0 0 200 150">
+          <path class="scene-fox-path" d="M20,110 L50,20 L65,60 L85,35 Q120,25 150,45 L180,60 L155,75 Q130,80 110,90 L90,120 Q60,130 20,110 Z"/>
+        </svg>
+        <svg class="scene-mountains" viewBox="0 0 1200 200" preserveAspectRatio="none">
+          <path class="scene-mountain-back" d="M0,200 L0,120 L150,60 L300,110 L450,40 L600,90 L750,30 L900,100 L1050,50 L1200,90 L1200,200 Z"/>
+          <path class="scene-mountain-front" d="M0,200 L0,150 L100,90 L250,140 L400,70 L550,130 L700,60 L850,120 L1000,80 L1150,130 L1200,110 L1200,200 Z"/>
+        </svg>
+      </div>
       <div class="container hero-content">
         <!-- Status banner: only shown when a profile sets "status": "frozen" or "discontinued" in data.json -->
         <div class="status-banner" id="status-banner" hidden>
@@ -170,6 +227,9 @@
         <div class="hero-actions">
           <a href="#" class="btn btn-filled" id="hero-download-btn">Download latest build</a>
           <a href="#install" class="btn btn-outlined">Installation guide</a>
+          <button type="button" class="btn-icon copy-link-btn" id="hero-copy-link-btn" aria-label="Copy link to this page">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></svg>
+          </button>
         </div>
 
         <div class="hero-meta" id="hero-meta">
@@ -225,6 +285,7 @@
             Loading the latest release details…
           </p>
           <p class="release-meta" id="release-meta"></p>
+          <div class="release-checksums" id="release-checksums"></div>
           <div class="release-actions">
             <a href="#" class="btn btn-filled" id="release-download-btn">Download build</a>
             <a href="#" class="btn btn-tonal" id="release-notes-btn">Full release notes</a>
@@ -296,6 +357,20 @@
       <h3 class="donate-modal-title">Support this project</h3>
       <p class="donate-modal-note">Completely optional — if you'd like to chip in toward development, here are some ways to. Thank you either way!</p>
       <div class="donate-wallets" id="donate-wallets"><!-- Wallet rows injected by main.js --></div>
+    </div>
+  </div>
+
+  <!-- ===================== EASTER EGG: FOX GAME ===================== -->
+  <!-- Type "fox" anywhere on the page (not while typing in a field) to open this. -->
+  <div class="fox-game-modal" id="fox-game-modal" aria-hidden="true">
+    <div class="fox-game-content">
+      <button type="button" class="fox-game-close" id="fox-game-close" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+      <h3 class="fox-game-title">🦊 Fox Run</h3>
+      <p class="fox-game-score">Score: <span id="fox-game-score">0</span></p>
+      <canvas id="fox-game-canvas" width="400" height="400"></canvas>
+      <p class="fox-game-hint" id="fox-game-hint">Arrow keys / WASD to move</p>
     </div>
   </div>
 

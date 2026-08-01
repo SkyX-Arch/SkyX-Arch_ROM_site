@@ -15,47 +15,52 @@
 // this worker never caches or serves stale data for those.
 // =============================================================================
 
-const CACHE_VERSION = '6';
+const CACHE_VERSION = '8';
 const CACHE_NAME = `romsite-shell-v${CACHE_VERSION}`;
 
 // The core files needed to render the page at all. Add a path here if you
 // add another file that's always needed (e.g. a new default screenshot).
 const APP_SHELL = [
   './',
- 'index.html',
+  'index.html',
   'data.json',
   'assets/css/style.css',
   'assets/js/main.js',
-  'assets/img/logo main.svg',
+  'assets/img/logo.svg',
+  'assets/img/favicon.png',
+  'assets/img/social-banner.jpg',
+  'assets/img/screenshot-placeholder.svg',
+  'assets/img/screenshot-placeholder-2.svg',
+  'assets/img/screenshot-placeholder-3.svg'
   'assets/img/Crdroid logo.svg',
   'assets/img/AxionOS logo.svg',
   'assets/img/screenshot-Crdroid.svg',
-  'assets/img/screenshot-Crdroid-2.svg'
-  'assets/img/screenshot-Crdroid-3.svg'
-  'assets/img/screenshot-Crdroid-4.svg'
-  'assets/img/screenshot-Crdroid-5.svg'
-  'assets/img/screenshot-AxionOS.svg'
-  'assets/img/screenshot-AxionOS-2.svg'
-  'assets/img/screenshot-AxionOS-3.svg'
-  'assets/img/screenshot-AxionOS-4.svg'
-  'assets/img/screenshot-AxionOS-5.svg'
+  'assets/img/screenshot-Crdroid-2.svg',
+  'assets/img/screenshot-Crdroid-3.svg',
+  'assets/img/screenshot-Crdroid-4.svg',
+  'assets/img/screenshot-Crdroid-5.svg',
+  'assets/img/screenshot-AxionOS.svg',
+  'assets/img/screenshot-AxionOS-2.svg',
+  'assets/img/screenshot-AxionOS-3.svg',
+  'assets/img/screenshot-AxionOS-4.svg',
+  'assets/img/screenshot-AxionOS-5.svg',
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-    .then((cache) => cache.addAll(APP_SHELL))
-    .then(() => self.skipWaiting())
+      .then((cache) => cache.addAll(APP_SHELL))
+      .then(() => self.skipWaiting())
   );
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-    .then((keys) => Promise.all(
-      keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
-    ))
-    .then(() => self.clients.claim())
+      .then((keys) => Promise.all(
+        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+      ))
+      .then(() => self.clients.claim())
   );
 });
 
@@ -75,11 +80,11 @@ async function staleWhileRevalidate(request) {
   const cached = await cache.match(request);
 
   const networkFetch = fetch(request)
-  .then((response) => {
-    if (response && response.ok) cache.put(request, response.clone());
-    return response;
-  })
-  .catch(() => null); // offline / request failed — nothing more we can do here
+    .then((response) => {
+      if (response && response.ok) cache.put(request, response.clone());
+      return response;
+    })
+    .catch(() => null); // offline / request failed — nothing more we can do here
 
   if (cached) {
     // Serve the cached copy immediately; refresh the cache in the
@@ -100,4 +105,3 @@ async function staleWhileRevalidate(request) {
     headers: { 'Content-Type': 'text/plain' }
   });
 }
-

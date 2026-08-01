@@ -5,29 +5,29 @@
    stays consistent and easy to re-tune (e.g. swap the accent hue).
    ========================================================================= */
 :root {
-  /* -- Core dark surfaces -- */
-  --color-background: #141218;
-  --color-surface: #1D1B20;
-  --color-surface-container: #211F26;
-  --color-surface-container-high: #2B2930;
-  --color-surface-container-highest: #36343B;
-  --color-outline: #938F99;
-  --color-outline-variant: #49454F;
+  /* -- Core dark surfaces (SkyX-Arch navy, sampled from the brand banner) -- */
+  --color-background: #05070D;
+  --color-surface: #0A0F1A;
+  --color-surface-container: #0F1522;
+  --color-surface-container-high: #151D2C;
+  --color-surface-container-highest: #1C2537;
+  --color-outline: #7C8AA0;
+  --color-outline-variant: #2E3648;
 
   /* -- Dynamic accent roles (edit these to re-theme the whole site) -- */
-  --color-primary: #D0BCFF;
-  --color-on-primary: #381E72;
-  --color-primary-container: #4F378B; /* fallback for browsers without color-mix() support */
+  --color-primary: #4DA6FF;
+  --color-on-primary: #001B3D;
+  --color-primary-container: #16345C; /* fallback for browsers without color-mix() support */
   --color-primary-container: color-mix(in srgb, var(--color-primary) 38%, var(--color-surface-container-high));
-  --color-secondary: #CCC2DC;
-  --color-tertiary: #EFB8C8;
-  --color-on-tertiary: #492532;
+  --color-secondary: #88EBFF;
+  --color-tertiary: #FFC868;
+  --color-on-tertiary: #402D00;
 
-  --color-on-surface: #E6E0E9;
-  --color-on-surface-variant: #CAC4D0;
+  --color-on-surface: #E8F0FF;
+  --color-on-surface-variant: #A8B8CE;
 
   /* -- Gradient used for the hero blob / accents -- */
-  --gradient-accent: linear-gradient(135deg, var(--color-primary) 0%, var(--color-tertiary) 100%);
+  --gradient-accent: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
 
   /* -- Shape (Material You loves generous, soft rounding) -- */
   --radius-sm: 12px;
@@ -39,7 +39,7 @@
   /* -- Elevation (soft, colored shadows rather than plain black) -- */
   --shadow-1: 0 1px 3px rgba(0, 0, 0, 0.35);
   --shadow-2: 0 4px 16px rgba(0, 0, 0, 0.4);
-  --shadow-glow: 0 0 40px rgba(208, 188, 255, 0.15);
+  --shadow-glow: 0 0 40px rgba(77, 166, 255, 0.18);
 
   /* -- Typography -- */
   --font-display: "Space Grotesk", "Inter", sans-serif;
@@ -401,32 +401,6 @@ section {
   overflow: hidden;
 }
 
-.hub-hero-blob {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: min(640px, 130vw);
-  height: min(640px, 130vw);
-  transform: translate(-55%, -50%);
-  background: var(--gradient-accent);
-  opacity: 0.14;
-  filter: blur(60px);
-  border-radius: 42% 58% 65% 35% / 45% 40% 60% 55%;
-  animation: blob-morph 18s var(--ease-standard) infinite alternate;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.hub-hero-blob-secondary {
-  top: 65%;
-  left: 70%;
-  width: min(420px, 90vw);
-  height: min(420px, 90vw);
-  opacity: 0.1;
-  animation-duration: 22s;
-  animation-direction: alternate-reverse;
-}
-
 .hub-hero-content {
   position: relative;
   z-index: 1;
@@ -481,11 +455,30 @@ section {
 }
 
 .hub-stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
   background: var(--color-surface-container);
   border: 1px solid var(--color-outline-variant);
   border-radius: var(--radius-lg);
-  padding: 22px 16px;
+  padding: 24px 16px;
+}
+
+.hub-stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-primary);
+  color: var(--color-primary);
+  display: grid;
+  place-items: center;
+  margin-bottom: 12px;
+}
+
+.hub-stat-icon svg {
+  width: 20px;
+  height: 20px;
 }
 
 .hub-stat-value {
@@ -592,7 +585,7 @@ section {
 }
 
 .hub-card-status-frozen {
-  background: rgba(239, 184, 200, 0.15);
+  background: rgba(255, 200, 104, 0.15);
   color: var(--color-tertiary);
 }
 
@@ -612,8 +605,14 @@ section {
 }
 
 .hub-card-badge-ota {
-  background: rgba(204, 194, 220, 0.18);
+  background: rgba(136, 235, 255, 0.18);
   color: var(--color-secondary);
+}
+
+.hub-card-badge-tag {
+  background: transparent;
+  border: 1px solid var(--color-outline-variant);
+  color: var(--color-on-surface-variant);
 }
 
 /* Discontinued builds are visually quieter on the grid — still findable, not front-and-center */
@@ -765,12 +764,29 @@ section {
   margin-bottom: 32px;
 }
 
+.faq-article-title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
 .faq-article-title {
   font-family: var(--font-display);
   font-weight: 700;
   font-size: clamp(26px, 4vw, 38px);
   letter-spacing: -0.01em;
-  margin-bottom: 32px;
+}
+
+.faq-article-title-row .btn-icon {
+  width: 40px;
+  height: 40px;
+  margin-top: 4px;
+}
+
+.faq-article-title-row .btn-icon svg {
+  width: 16px;
+  height: 16px;
 }
 
 /* -- markdown-body: prose styling for rendered FAQ articles -- */
@@ -1086,27 +1102,94 @@ section {
 }
 
 /* Signature element: a soft morphing "Material You" blob behind the logo */
-.hero-blob {
+/* -- Scene background: stars, ribbon, mountains, fox watermark --
+   Shared decorative system used behind both the hub hero and each ROM's
+   hero. Everything here is aria-hidden and pointer-events:none — purely
+   decorative, never in the way of real content or focus order. */
+.scene-bg {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: min(720px, 140vw);
-  height: min(720px, 140vw);
-  transform: translate(-50%, -55%);
-  background: var(--gradient-accent);
-  opacity: 0.18;
-  filter: blur(60px);
-  border-radius: 42% 58% 65% 35% / 45% 40% 60% 55%;
-  animation: blob-morph 16s var(--ease-standard) infinite alternate;
+  inset: 0;
+  overflow: hidden;
   z-index: 0;
   pointer-events: none;
 }
 
-@keyframes blob-morph {
-  0%   { border-radius: 42% 58% 65% 35% / 45% 40% 60% 55%; }
-  33%  { border-radius: 58% 42% 40% 60% / 55% 65% 35% 45%; }
-  66%  { border-radius: 65% 35% 55% 45% / 40% 55% 45% 60%; }
-  100% { border-radius: 48% 52% 45% 55% / 60% 45% 55% 40%; }
+.scene-stars {
+  position: absolute;
+  inset: 0;
+}
+
+.scene-star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: var(--color-on-surface);
+  animation: star-twinkle 4s ease-in-out infinite;
+}
+
+@keyframes star-twinkle {
+  0%, 100% { opacity: 0.15; transform: scale(1); }
+  50%      { opacity: 0.9;  transform: scale(1.6); }
+}
+
+.scene-ribbon {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  animation: ribbon-drift 24s ease-in-out infinite alternate;
+}
+
+@keyframes ribbon-drift {
+  0%   { transform: translateX(-2%) translateY(0); }
+  100% { transform: translateX(2%) translateY(-1%); }
+}
+
+.scene-fox {
+  position: absolute;
+  bottom: -5%;
+  right: -4%;
+  width: min(420px, 55vw);
+  height: auto;
+  opacity: 0.05;
+}
+
+.scene-mountains {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-star,
+  .scene-ribbon {
+    animation: none;
+  }
+}
+
+.ribbon-stop-start {
+  stop-color: var(--color-primary);
+}
+
+.ribbon-stop-end {
+  stop-color: var(--color-secondary);
+}
+
+.scene-fox-path {
+  fill: var(--color-primary);
+}
+
+.scene-mountain-back {
+  fill: var(--color-surface-container-high);
+  opacity: 0.55;
+}
+
+.scene-mountain-front {
+  fill: var(--color-surface-container-highest);
+  opacity: 0.85;
 }
 
 .hero-content {
@@ -1146,7 +1229,7 @@ section {
 }
 
 .status-banner-frozen {
-  background: rgba(239, 184, 200, 0.12);
+  background: rgba(255, 200, 104, 0.12);
   border: 1px solid var(--color-tertiary);
   color: var(--color-tertiary);
 }
@@ -1196,6 +1279,40 @@ section {
   flex-wrap: wrap;
   gap: 14px;
   justify-content: center;
+}
+
+/* -- Small icon-only utility button (copy-link, etc) -- */
+.btn-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid var(--color-outline-variant);
+  background: var(--color-surface-container-high);
+  color: var(--color-on-surface-variant);
+  flex-shrink: 0;
+  transition: background var(--duration-fast) var(--ease-standard),
+              color var(--duration-fast) var(--ease-standard),
+              border-color var(--duration-fast) var(--ease-standard),
+              transform var(--duration-fast) var(--ease-standard);
+}
+
+.btn-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.btn-icon:hover {
+  background: var(--color-primary-container);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+}
+
+.btn-icon.copied {
+  color: var(--color-tertiary);
+  border-color: var(--color-tertiary);
 }
 
 .hero-meta {
@@ -1580,6 +1697,67 @@ section {
   display: none;
 }
 
+.release-checksums {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.release-checksums:empty {
+  display: none;
+}
+
+.checksum-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.checksum-label {
+  flex-shrink: 0;
+  color: var(--color-outline);
+  width: 56px;
+}
+
+.checksum-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-on-surface-variant);
+}
+
+.checksum-copy-btn {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--color-outline-variant);
+  background: var(--color-surface-container-high);
+  color: var(--color-on-surface-variant);
+  display: grid;
+  place-items: center;
+  transition: background var(--duration-fast) var(--ease-standard),
+              color var(--duration-fast) var(--ease-standard);
+}
+
+.checksum-copy-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.checksum-copy-btn:hover {
+  background: var(--color-primary-container);
+  color: var(--color-primary);
+}
+
+.checksum-copy-btn.copied {
+  color: var(--color-tertiary);
+}
+
 .release-actions {
   position: relative;
   display: flex;
@@ -1749,7 +1927,7 @@ section {
 }
 
 .install-callout-warning {
-  background: rgba(239, 184, 200, 0.08);
+  background: rgba(255, 200, 104, 0.08);
   border: 1px solid var(--color-tertiary);
 }
 
@@ -1758,7 +1936,7 @@ section {
 }
 
 .install-callout-important {
-  background: rgba(208, 188, 255, 0.08);
+  background: rgba(77, 166, 255, 0.08);
   border: 1px solid var(--color-primary);
 }
 
@@ -1767,7 +1945,7 @@ section {
 }
 
 .install-callout-tip {
-  background: rgba(204, 194, 220, 0.08);
+  background: rgba(136, 235, 255, 0.08);
   border: 1px solid var(--color-secondary);
 }
 
@@ -1875,7 +2053,7 @@ section {
 .step-important {
   font-size: 14px;
   color: var(--color-primary);
-  background: rgba(208, 188, 255, 0.08);
+  background: rgba(77, 166, 255, 0.08);
   border-radius: var(--radius-sm);
   padding: 12px 16px;
 }
@@ -2184,6 +2362,98 @@ section {
   padding-right: 52px;
   word-break: break-all;
   white-space: pre-wrap;
+}
+
+/* -- Fox game easter egg (type "fox" anywhere to open) -- */
+.fox-game-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(5, 7, 13, 0.9);
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-medium) var(--ease-standard);
+}
+
+.fox-game-modal.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.fox-game-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--color-surface-container);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-xl);
+  padding: 32px;
+  box-shadow: var(--shadow-2), var(--shadow-glow);
+  transform: scale(0.96);
+  transition: transform var(--duration-medium) var(--ease-standard);
+}
+
+.fox-game-modal.open .fox-game-content {
+  transform: scale(1);
+}
+
+.fox-game-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-surface-container-high);
+  color: var(--color-on-surface);
+  border: 1px solid var(--color-outline-variant);
+  display: grid;
+  place-items: center;
+  transition: background var(--duration-fast) var(--ease-standard);
+}
+
+.fox-game-close:hover {
+  background: var(--color-primary-container);
+  color: var(--color-primary);
+}
+
+.fox-game-close svg {
+  width: 16px;
+  height: 16px;
+}
+
+.fox-game-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 20px;
+  margin-bottom: 6px;
+}
+
+.fox-game-score {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--color-on-surface-variant);
+  margin-bottom: 16px;
+}
+
+#fox-game-canvas {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-outline-variant);
+  background: var(--color-background);
+  max-width: 100%;
+  touch-action: none;
+}
+
+.fox-game-hint {
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--color-outline);
 }
 
 /* -- Image fade-in (smooths logo/screenshot pop-in while they load) -- */

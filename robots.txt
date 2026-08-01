@@ -1,0 +1,5 @@
+# EDIT: if data.json's hub.siteUrl changes, update the Sitemap line below to match.
+User-agent: *
+Allow: /
+
+Sitemap: https://skyx-arch.github.io/romsite/sitemap.xml
