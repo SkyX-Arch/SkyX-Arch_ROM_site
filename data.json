@@ -100,7 +100,7 @@
           { "icon": "battery", "label": "Battery", "value": "5000 mAh, 120W wired" },
           { "icon": "memory", "label": "Memory", "value": "8/12GB RAM / 128–256GB storage" },
           { "icon": "camera", "label": "Camera", "value": "108MP main + 8MP ultrawide + 2MP macro" },
-          { "icon": "android", "label": "Base", "value": "Android 16 (crDroid)" }
+          { "icon": "android", "label": "Base", "value": "Android 17 (crDroid)" }
         ]
       },
 
@@ -108,7 +108,7 @@
         "version": "12.11",
         "codename": "Unofficial",
         "date": "2026-07-05",
-        "androidBase": "Android 16",
+        "androidBase": "Android 17",
         "summary": "The newest crDroid build for plato. See the full changelog below for everything that changed."
       },
 
