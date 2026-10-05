@@ -30,7 +30,7 @@
       "featuredComment": "Optional. Set to true on whichever profile is the primary/flagship project — shows a 'Featured' badge and a slightly larger, first-position card on the hub grid.",
       "featured": true,
       "tagsComment": "Optional. Fully manual badges on this profile's hub-grid tile — any short labels you want (OTA, GApps Included, A/B Only, Recommended, whatever). If set, this list is used exactly as-is, INCLUDING deciding whether an 'OTA' badge shows — the automatic OTA-detection (from remote.releaseJsonUrl) only kicks in as a fallback when 'tags' isn't set at all. Set to an empty array to intentionally show no tags.",
-      "tags": ["OTA", "Vanilla"],
+      "tags": ["OTA", "Vanilla", "GAPPS"],
 
       "remote": {
         "_comment": "Live data sources for this device. Point releaseJsonUrl/changelogUrl at your own ROM's feed to switch devices.",
