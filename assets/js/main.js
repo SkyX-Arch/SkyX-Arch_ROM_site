@@ -631,19 +631,45 @@ function initFoxGame() {
     foxGameState.nextDirection = direction;
   });
 
-  // Secret trigger: typing "fox" anywhere (not while focused in a text field) opens the game.
-  let typedBuffer = '';
-  document.addEventListener('keydown', (event) => {
-    const active = document.activeElement;
-    const tag = active && active.tagName;
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || (active && active.isContentEditable)) return;
-    if (event.key.length !== 1) return; // ignore Shift/Arrow/etc — only single printable characters count
+  // Secret trigger: tap the header logo a handful of times in a row — the
+  // same ritual as Android's "tap the build number" developer-options
+  // easter egg. Works everywhere (including touch/mobile, unlike a typed
+  // keyword), and the logo is present in the header on every view.
+  const FOX_TAP_THRESHOLD = 6;
+  const FOX_TAP_RESET_MS = 1500; // taps must land within this window of each other to count
+  const FOX_TAP_HINT_AT = 3; // start showing the countdown once they're clearly not just clicking randomly
 
-    typedBuffer = (typedBuffer + event.key).slice(-3).toLowerCase();
-    if (typedBuffer === 'fox') {
-      typedBuffer = '';
+  const logo = document.getElementById('nav-brand-logo');
+  const hint = document.getElementById('fox-tap-hint');
+  let tapCount = 0;
+  let tapResetTimer = null;
+
+  logo.addEventListener('click', () => {
+    clearTimeout(tapResetTimer);
+    tapCount += 1;
+
+    // A little bounce/pounce on every tap — playful feedback, not an error state.
+    logo.classList.remove('logo-bounce');
+    void logo.offsetWidth; // force a reflow so the animation restarts even on rapid re-taps
+    logo.classList.add('logo-bounce');
+
+    if (tapCount >= FOX_TAP_THRESHOLD) {
+      tapCount = 0;
+      hint.classList.remove('visible');
       openFoxGame();
+      return;
     }
+
+    const remaining = FOX_TAP_THRESHOLD - tapCount;
+    if (tapCount >= FOX_TAP_HINT_AT) {
+      hint.textContent = `${remaining} more tap${remaining === 1 ? '' : 's'}...`;
+      hint.classList.add('visible');
+    }
+
+    tapResetTimer = setTimeout(() => {
+      tapCount = 0;
+      hint.classList.remove('visible');
+    }, FOX_TAP_RESET_MS);
   });
 }
 
@@ -823,7 +849,10 @@ function renderRelease(data) {
   document.getElementById('release-codename').textContent = latestRelease.codename;
   document.getElementById('release-date').textContent = formatDate(latestRelease.date);
   document.getElementById('release-summary').textContent = latestRelease.summary;
-  document.getElementById('release-download-btn').href = links.downloads;
+  // directDownloadUrl is only set when a profile has "variants" (see
+  // renderVariantToggle) — picking a variant should get you that exact file,
+  // not the generic stable page. Without variants, nothing changes here.
+  document.getElementById('release-download-btn').href = latestRelease.directDownloadUrl || links.downloads;
   document.getElementById('release-notes-btn').href = links.releases;
 
   const metaParts = [];
@@ -845,6 +874,132 @@ function renderRelease(data) {
       </button>
     </div>
   `).join('');
+}
+
+// -----------------------------------------------------------------------
+// Release variants (e.g. "Vanilla" vs "With GApps") — an optional segmented
+// toggle in the release panel. Each variant is just its own live release
+// feed, so no separate page is needed; picking one fetches (and caches)
+// that variant's data and updates the release panel in place. Variants
+// reuse the profile's own releaseJsonMap by default, since most ROMs use
+// identical field names across every variant of the same build.
+// -----------------------------------------------------------------------
+
+// Tracks whichever profile's release panel is currently on screen, so the
+// one delegated click listener (bound once, not re-bound per profile) always
+// acts on the right profile's variants without accumulating duplicate
+// listeners as someone navigates between ROM pages.
+let activeProfileForVariants = null;
+
+function renderVariantToggle(profile) {
+  activeProfileForVariants = profile;
+
+  const container = document.getElementById('variant-toggle');
+  const note = document.getElementById('variant-toggle-note');
+  const variants = Array.isArray(profile.variants) ? profile.variants : [];
+
+  note.hidden = true;
+
+  if (variants.length === 0) {
+    container.hidden = true;
+    container.innerHTML = '';
+    return;
+  }
+
+  container.hidden = false;
+  container.innerHTML = variants.map(variant => `
+    <button type="button" class="variant-toggle-btn" data-variant-id="${variant.id}">${variant.label}</button>
+  `).join('');
+
+  // Highlight the default right away, so a slow or failed fetch never
+  // leaves the toggle with nothing selected.
+  const defaultVariant = variants.find(v => v.default) || variants[0];
+  setActiveVariantButton(defaultVariant.id);
+}
+
+function setActiveVariantButton(variantId) {
+  document.querySelectorAll('.variant-toggle-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.variantId === variantId);
+  });
+}
+
+// Fetches one variant's release data (or reuses an already-fetched copy —
+// cached directly on the variant object so flipping back and forth between
+// variants doesn't keep re-fetching). Runs the extraction onto a throwaway
+// working object so it never mutates the profile's own canonical data.
+async function fetchVariantRelease(profile, variant) {
+  if (variant._cachedRelease) return variant._cachedRelease;
+
+  const map = variant.releaseJsonMap || (profile.remote && profile.remote.releaseJsonMap) || {};
+  const releaseFeed = await loadJson(variant.releaseJsonUrl);
+  const entry = extractReleaseEntry(releaseFeed, map);
+
+  const working = {
+    latestRelease: { ...profile.latestRelease },
+    device: { ...profile.device },
+    links: { ...profile.links }
+  };
+  applyRemoteRelease(working, entry, map);
+
+  const result = {
+    latestRelease: working.latestRelease,
+    directDownloadUrl: getMappedField(entry, map, 'download') || null
+  };
+  variant._cachedRelease = result;
+  return result;
+}
+
+// token guards against a slow fetch resolving after the visitor has already
+// navigated away from this profile (same pattern as loadRemoteDataForProfile).
+async function switchReleaseVariant(profile, variant, token) {
+  const previousButton = document.querySelector('.variant-toggle-btn.active');
+  const previousId = previousButton ? previousButton.dataset.variantId : null;
+  const note = document.getElementById('variant-toggle-note');
+
+  note.hidden = true;
+  profile._requestedVariantId = variant.id; // lets a slower, older click's response be ignored below
+  setActiveVariantButton(variant.id);
+
+  let result;
+  try {
+    result = await fetchVariantRelease(profile, variant);
+  } catch (err) {
+    console.error(`Failed to load the "${variant.label}" variant:`, err);
+    // Don't leave the toggle highlighting a variant whose data never loaded —
+    // that would show one build's details under another build's label.
+    if (token === currentSwitchToken && profile._requestedVariantId === variant.id) {
+      if (previousId) {
+        setActiveVariantButton(previousId);
+        profile._requestedVariantId = previousId;
+      }
+      note.textContent = `Couldn't load the "${variant.label}" build info right now — still showing the previous one.`;
+      note.hidden = false;
+    }
+    return;
+  }
+
+  if (token !== currentSwitchToken) return; // navigated to another page while loading
+  if (profile._requestedVariantId !== variant.id) return; // a newer click superseded this one
+
+  profile.latestRelease = {
+    ...result.latestRelease,
+    // The summary comes from the (shared) changelog, not the per-variant
+    // feed — keep whatever's currently shown rather than reverting to a
+    // stale copy captured when this variant was first fetched.
+    summary: profile.latestRelease.summary,
+    directDownloadUrl: result.directDownloadUrl
+  };
+  renderRelease(profile);
+}
+
+// Bind once (in init()), not per-profile — see activeProfileForVariants above.
+function initVariantToggleDelegation() {
+  document.getElementById('variant-toggle').addEventListener('click', (event) => {
+    const button = event.target.closest('.variant-toggle-btn');
+    if (!button || !activeProfileForVariants) return;
+    const variant = (activeProfileForVariants.variants || []).find(v => v.id === button.dataset.variantId);
+    if (variant) switchReleaseVariant(activeProfileForVariants, variant, currentSwitchToken);
+  });
 }
 
 function renderChangelog(data) {
@@ -1170,6 +1325,7 @@ function renderAll(data) {
   renderHero(data);
   renderDevice(data);
   renderRelease(data);
+  renderVariantToggle(data);
   renderChangelog(data);
   renderInstallIntro(data);
   renderInstallSteps(data);
@@ -1634,8 +1790,27 @@ function showFaqTopLevelView() {
 // away from can't clobber a newer render.
 async function loadRemoteDataForProfile(profile, token) {
   const remote = profile.remote || {};
+  const variants = Array.isArray(profile.variants) ? profile.variants : [];
 
-  if (remote.releaseJsonUrl) {
+  if (variants.length > 0) {
+    // With variants, the default variant's own feed supplies the release
+    // data (remote.releaseJsonUrl is not used directly). The changelog below
+    // stays shared across variants.
+    const defaultVariant = variants.find(v => v.default) || variants[0];
+    profile._requestedVariantId = defaultVariant.id;
+    try {
+      const result = await fetchVariantRelease(profile, defaultVariant);
+      if (token !== currentSwitchToken) return;
+      // Skip if the visitor already clicked a different variant while this
+      // initial load was still in flight.
+      if (profile._requestedVariantId === defaultVariant.id) {
+        profile.latestRelease = { ...result.latestRelease, directDownloadUrl: result.directDownloadUrl };
+        setActiveVariantButton(defaultVariant.id);
+      }
+    } catch (err) {
+      console.error(`Failed to load the "${defaultVariant.label}" variant, keeping local fallback:`, err);
+    }
+  } else if (remote.releaseJsonUrl) {
     try {
       const releaseFeed = await loadJson(remote.releaseJsonUrl);
       if (token !== currentSwitchToken) return;
@@ -2002,6 +2177,7 @@ async function init() {
     initLightbox();
     initDonateModal();
     initFoxGame();
+    initVariantToggleDelegation();
 
     const params = new URLSearchParams(window.location.search);
     const romIdFromUrl = params.get('rom');

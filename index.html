@@ -49,6 +49,7 @@
       <a href="#" class="nav-brand" id="nav-brand-link">
         <img src="assets/img/logo.svg" alt="Logo" id="nav-brand-logo" decoding="async">
         <span id="nav-brand-title">Builds</span>
+        <span class="fox-tap-hint" id="fox-tap-hint" aria-hidden="true"></span>
       </a>
 
       <a href="#" class="nav-back-link" id="nav-back-link" hidden>
@@ -276,6 +277,10 @@
         <p class="section-subheading reveal">The newest build, ready to flash, pulled live from the release feed.</p>
 
         <div class="release-panel reveal">
+          <!-- Segmented toggle: only shown when a profile defines "variants" in data.json (e.g. Vanilla / With GApps) -->
+          <div class="variant-toggle" id="variant-toggle" role="group" aria-label="Build variant" hidden></div>
+          <p class="variant-toggle-note" id="variant-toggle-note" role="status" hidden></p>
+
           <div class="release-header">
             <span class="release-version" id="release-version">12.11</span>
             <span class="release-badge" id="release-codename">Unofficial</span>

@@ -31,6 +31,10 @@
       "featured": true,
       "tagsComment": "Optional. Fully manual badges on this profile's hub-grid tile — any short labels you want (OTA, GApps Included, A/B Only, Recommended, whatever). If set, this list is used exactly as-is, INCLUDING deciding whether an 'OTA' badge shows — the automatic OTA-detection (from remote.releaseJsonUrl) only kicks in as a fallback when 'tags' isn't set at all. Set to an empty array to intentionally show no tags.",
       "tags": ["OTA", "Vanilla", "GAPPS"],
+      "variants": [
+        { "id": "vanilla", "label": "Vanilla", "default": true, "releaseJsonUrl": "https://skyx-arch.github.io/crdroid-ota/plato.json" },
+        { "id": "gapps", "label": "With GApps", "releaseJsonUrl": "https://skyx-arch.github.io/crdroid-ota/platogms.json" }
+      ],
 
       "remote": {
         "_comment": "Live data sources for this device. Point releaseJsonUrl/changelogUrl at your own ROM's feed to switch devices.",
