@@ -1938,6 +1938,9 @@ async function goToInstaller(profiles, id, historyMode) {
   closeLightbox();
   updateUrlParam('rom', profile.id, historyMode);
 
+  // Manually restore from URL to trigger popstate handler (fixes direct URL navigation)
+  restoreFromUrl(profiles, []);
+
   resetTheme();
   applyTheme(profile.theme);
   showInstallerViewWithProfile(profile);
@@ -2006,13 +2009,14 @@ function restoreFromUrl(profiles, faqArticles) {
   const romId = params.get('rom');
   const faqParam = params.get('faq');
 
-  if (romId && getProfileById(profiles, romId)) {
-    // Check if this is the installer route
-    if (romId === 'installer') {
-      goToInstaller(profiles, 'installer', 'none');
-    } else {
-      goToProfile(profiles, romId, 'none');
-    }
+  // Check if this is the installer route by looking at the URL path
+  const pathname = window.location.pathname;
+  const isInstallerRoute = pathname.includes('/installer/') && getProfileById(profiles, romId);
+
+  if (isInstallerRoute) {
+    goToInstaller(profiles, romId, 'none');
+  } else if (romId && getProfileById(profiles, romId)) {
+    goToProfile(profiles, romId, 'none');
   } else if (faqParam !== null && faqArticles.length > 0) {
     const articleId = faqArticles.some(a => a.id === faqParam) ? faqParam : null;
     goToFaq(profiles, faqArticles, articleId, 'none');
