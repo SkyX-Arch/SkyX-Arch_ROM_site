@@ -1761,6 +1761,12 @@ function showHubView() {
   renderFooter(null); // hub view has no single ROM to credit — show hub-level info instead
   initScrollReveal(); // must run AFTER unhiding: observing hidden (display:none) elements
                        // and waiting for them to become visible later is unreliable in some browsers
+  
+  // Show the hub-nav-roms link if it exists (hub view needs this link)
+  const romsLink = document.getElementById('hub-nav-roms');
+  if (romsLink) {
+    romsLink.hidden = false;
+  }
 }
 
 function showDetailView(hasHub) {
@@ -1783,6 +1789,22 @@ function showFaqTopLevelView() {
   window.scrollTo(0, 0);
   renderFooter(null);
   initScrollReveal();
+}
+
+function showInstallerView() {
+  showTopLevelView('detail');
+  document.getElementById('nav-back-link').hidden = false;
+  document.getElementById('nav-links').hidden = true;
+  document.getElementById('nav-cta').hidden = true;
+  window.scrollTo(0, 0);
+  renderFooter(null);
+  initScrollReveal();
+}
+
+function showInstallerViewWithProfile(profile) {
+  showInstallerView();
+  renderAll(profile);
+  renderFooter(profile);
 }
 
 // Fetches and overlays a profile's live release/changelog data, guarded by
@@ -1904,6 +1926,51 @@ async function goToProfile(profiles, id, historyMode) {
   await loadRemoteDataForProfile(profile, token);
 }
 
+// -----------------------------------------------------------------------
+// Installer Route Handler
+// -----------------------------------------------------------------------
+async function goToInstaller(profiles, id, historyMode) {
+  const profile = getProfileById(profiles, id);
+  if (!profile) return;
+
+  const token = ++currentSwitchToken;
+
+  closeLightbox();
+  updateUrlParam('rom', profile.id, historyMode);
+
+  resetTheme();
+  applyTheme(profile.theme);
+  showInstallerViewWithProfile(profile);
+
+  // Initialize the installer and start the flow
+  const installer = new ROMInstaller({
+    uiContainerId: 'installer-container',
+    profileId: profile.id,
+    releaseFeedUrl: profile.remote?.releaseJsonUrl,
+    deviceInfo: profile.device || {}
+  });
+
+  // Load external config and merge with runtime data
+  try {
+    const configData = await fetch('installer/config.json').then(r => r.json());
+    if (configData) {
+      await installer.mergeConfig(configData);
+      console.log('[Installer] External config loaded and merged');
+    }
+  } catch (error) {
+    console.warn('[Installer] Failed to load external config:', error);
+  }
+
+  await installer.init();
+  console.log('[Installer] Route /installer/ ready for profile:', profile.id);
+
+  // Auto-start the installation flow
+  const ui = installer.createUI('installer-container');
+  await startInstallationFlow(installer, ui);
+
+  await loadRemoteDataForProfile(profile, token);
+}
+
 // Opens the FAQ section — either the article list (articleId is null/not
 // found) or a specific article, straight from the hub, a ROM's page, or a
 // direct link. FAQ isn't profile-themed, so it always uses the default palette.
@@ -1940,7 +2007,12 @@ function restoreFromUrl(profiles, faqArticles) {
   const faqParam = params.get('faq');
 
   if (romId && getProfileById(profiles, romId)) {
-    goToProfile(profiles, romId, 'none');
+    // Check if this is the installer route
+    if (romId === 'installer') {
+      goToInstaller(profiles, 'installer', 'none');
+    } else {
+      goToProfile(profiles, romId, 'none');
+    }
   } else if (faqParam !== null && faqArticles.length > 0) {
     const articleId = faqArticles.some(a => a.id === faqParam) ? faqParam : null;
     goToFaq(profiles, faqArticles, articleId, 'none');
@@ -1981,15 +2053,32 @@ function initHubNavigation(profiles, faqArticles) {
 
   window.addEventListener('popstate', () => restoreFromUrl(profiles, faqArticles));
 
-  // "Home" in the desktop hub nav is only ever shown while already on the
-  // hub, so it just scrolls back to the top instead of navigating anywhere.
-  document.getElementById('hub-nav-home').addEventListener('click', (event) => {
-    event.preventDefault();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+// "Home" in the desktop hub nav is only ever shown while already on the
+// hub, so it just scrolls back to the top instead of navigating anywhere.
+document.getElementById('hub-nav-home').addEventListener('click', (event) => {
+  event.preventDefault();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// Installer route — clicking on a ROM card from the hub opens the installer
+const grid = document.getElementById('hub-grid');
+if (grid) {
+  grid.addEventListener('click', (event) => {
+    const card = event.target.closest('.hub-card');
+    if (card) {
+      // Clicking a ROM card goes to the profile page
+      goToProfile(profiles, card.dataset.profileId, 'push');
+    }
   });
 }
 
-function scrollToRomsGrid() {
+// Allow opening installer by clicking hub nav "ROMs" link
+document.getElementById('hub-nav-roms').addEventListener('click', (event) => {
+  event.preventDefault();
+  goToInstaller(profiles, 'installer', 'push');
+});
+
+function scrollToRomsGrid()
   const grid = document.getElementById('hub-grid');
   if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -2030,7 +2119,7 @@ function initNavDrawer(profiles, faqArticles) {
     if (!link) return;
     const action = link.dataset.drawerAction;
 
-    if (action !== 'home' && action !== 'roms' && action !== 'faq') {
+    if (action !== 'home' && action !== 'roms' && action !== 'faq' && action !== 'installer') {
       closeNavDrawer(); // github/telegram are plain external links — just close and let them navigate
       return;
     }
@@ -2049,6 +2138,8 @@ function initNavDrawer(profiles, faqArticles) {
         goToHub(profiles, 'push');
         setTimeout(scrollToRomsGrid, 60); // let the hub view render before scrolling to it
       }
+    } else if (action === 'installer') {
+      goToInstaller(profiles, 'installer', 'push');
     } else {
       goToFaq(profiles, faqArticles, null, 'push');
     }
