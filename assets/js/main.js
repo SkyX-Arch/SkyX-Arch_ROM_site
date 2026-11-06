@@ -2065,14 +2065,10 @@ document.getElementById('hub-nav-home').addEventListener('click', (event) => {
 });
 
 // Installer route — clicking on a ROM card from the hub opens the installer
-const grid = document.getElementById('hub-grid');
 if (grid) {
   grid.addEventListener('click', (event) => {
     const card = event.target.closest('.hub-card');
-    if (card) {
-      // Clicking a ROM card goes to the profile page
-      goToProfile(profiles, card.dataset.profileId, 'push');
-    }
+    if (card) goToProfile(profiles, card.dataset.profileId, 'push');
   });
 }
 
