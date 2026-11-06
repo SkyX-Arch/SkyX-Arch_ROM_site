@@ -2078,7 +2078,7 @@ document.getElementById('hub-nav-roms').addEventListener('click', (event) => {
   goToInstaller(profiles, 'installer', 'push');
 });
 
-function scrollToRomsGrid() {
+function scrollToRomsGrid()
   const grid = document.getElementById('hub-grid');
   if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
